@@ -1,58 +1,93 @@
-import { Heart } from 'lucide-react';
-import { useState } from 'react';
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+} from "firebase/auth";
+import { Heart } from "lucide-react";
+import { useState } from "react";
+import { auth } from "../firebase";
 
 const LoginPage = ({ onLogin }) => {
     const [isRegistering, setIsRegistering] = useState(false);
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        name: '',
-        weight: '',
-        height: '',
-        age: '',
-        gender: '',
+        email: "",
+        password: "",
+        name: "",
+        weight: "",
+        height: "",
+        age: "",
+        gender: "",
         diseases: [],
-        activityLevel: ''
+        activityLevel: "",
     });
+    const [error, setError] = useState("");
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
     };
 
     const handleDiseaseChange = (disease) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             diseases: prev.diseases.includes(disease)
-                ? prev.diseases.filter(d => d !== disease)
-                : [...prev.diseases, disease]
+                ? prev.diseases.filter((d) => d !== disease)
+                : [...prev.diseases, disease],
         }));
     };
 
     const calculateBMI = (weight, height) => {
-        if (!weight || !height || height === 0) return '알수 없음';
+        if (!weight || !height || height === 0) return "알수 없음";
         const heightInM = height / 100;
         return (weight / (heightInM * heightInM)).toFixed(1);
     };
 
-    const handleSubmit = () => {
-        if (isRegistering) {
-            // 회원가입 처리
-            const newUser = {
-                ...formData,
-                bmi: calculateBMI(formData.weight, formData.height)
-            };
-            onLogin(newUser);
-        } else {
-            // 로그인 처리 (데모용)
-            const loginUser = {
-                name: formData.email.split('@')[0],
-                email: formData.email
-            };
-            onLogin(loginUser);
+    const handleSubmit = async () => {
+        setError("");
+        try {
+            if (isRegistering) {
+                // 회원가입 처리
+                const userCredential = await createUserWithEmailAndPassword(
+                    auth,
+                    formData.email,
+                    formData.password
+                );
+
+                // 추가 정보 (예: Firestore에 저장 가능)
+                const newUser = {
+                    uid: userCredential.user.uid,
+                    email: formData.email,
+                    name: formData.name,
+                    bmi: calculateBMI(formData.weight, formData.height),
+                    weight: formData.weight,
+                    height: formData.height,
+                    age: formData.age,
+                    gender: formData.gender,
+                    diseases: formData.diseases,
+                    activityLevel: formData.activityLevel,
+                };
+                onLogin(newUser);
+                alert("회원가입 성공!");
+            } else {
+                // 로그인 처리
+                const userCredential = await signInWithEmailAndPassword(
+                    auth,
+                    formData.email,
+                    formData.password
+                );
+
+                const loginUser = {
+                    uid: userCredential.user.uid,
+                    email: userCredential.user.email,
+                    name: formData.email.split("@")[0],
+                };
+                onLogin(loginUser);
+                alert("로그인 성공!");
+            }
+        } catch (e) {
+            setError(e.message);
         }
     };
 
@@ -65,7 +100,7 @@ const LoginPage = ({ onLogin }) => {
                         <h1 className="text-2xl font-bold text-gray-800">헬스케어 매니저</h1>
                     </div>
                     <p className="text-gray-600">
-                        {isRegistering ? '건강한 삶의 시작' : '건강 관리의 파트너'}
+                        {isRegistering ? "건강한 삶의 시작" : "건강 관리의 파트너"}
                     </p>
                 </div>
 
@@ -153,9 +188,11 @@ const LoginPage = ({ onLogin }) => {
                             </div>
 
                             <div>
-                                <p className="text-sm font-medium text-gray-700 mb-2">기존 질환 (해당사항 선택)</p>
+                                <p className="text-sm font-medium text-gray-700 mb-2">
+                                    기존 질환 (해당사항 선택)
+                                </p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {['당뇨병', '고혈압', '심장병', '관절염', '기타'].map(disease => (
+                                    {["당뇨병", "고혈압", "심장병", "관절염", "기타"].map((disease) => (
                                         <label key={disease} className="flex items-center space-x-2">
                                             <input
                                                 type="checkbox"
@@ -191,16 +228,23 @@ const LoginPage = ({ onLogin }) => {
                         onClick={handleSubmit}
                         className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200 font-semibold"
                     >
-                        {isRegistering ? '회원가입' : '로그인'}
+                        {isRegistering ? "회원가입" : "로그인"}
                     </button>
+
+                    {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
                 </div>
 
                 <div className="text-center mt-6">
                     <button
-                        onClick={() => setIsRegistering(!isRegistering)}
+                        onClick={() => {
+                            setError("");
+                            setIsRegistering(!isRegistering);
+                        }}
                         className="text-blue-500 hover:text-blue-700 text-sm"
                     >
-                        {isRegistering ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
+                        {isRegistering
+                            ? "이미 계정이 있으신가요? 로그인"
+                            : "계정이 없으신가요? 회원가입"}
                     </button>
                 </div>
             </div>
