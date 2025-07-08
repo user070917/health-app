@@ -1,10 +1,9 @@
 import { Activity, Calculator, Camera, Heart, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
-import BMICalculatorPage from './components/BMICalculatorPage'; // BMI 계산기 컴포넌트 임포트
-import ExerciseRecommendationsPage from './components/ExerciseRecommendationPage'; // 맞춤 운동 컴포넌트 임포트
-//import FoodRecognitionPage from './components/FoodRecognitionPage'; //음식 인식 컴포넌트 임포트
-//import HealthStatusPage from './components/HealthStatusPage'; // 건강분석 컴포넌트 임포트
-//import ProfilePage from './components/ProfilePage'; // 프로필 컴포넌트 임포트
+import BMICalculatorPage from './components/BMICalculatorPage';
+import ExerciseRecommendationsPage from './components/ExerciseRecommendationPage';
+import LoginPage from './components/login'; // 분리된 로그인 컴포넌트 임포트
+
 
 const FoodRecognitionPage = ({ setCurrentPage }) => (
   <div className="p-6 bg-white rounded-xl shadow-md">
@@ -71,221 +70,24 @@ const ProfilePage = ({ user, setCurrentPage }) => (
   </div>
 );
 
-
 const HealthManagementApp = () => {
   const [currentPage, setCurrentPage] = useState('login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // 로그인 페이지
-  const LoginPage = () => {
-    const [isRegistering, setIsRegistering] = useState(false);
-    const [formData, setFormData] = useState({
-      email: '',
-      password: '',
-      name: '',
-      weight: '',
-      height: '',
-      age: '',
-      gender: '',
-      diseases: [],
-      activityLevel: ''
-    });
+  // 로그인 핸들러
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+    setCurrentPage('main');
+  };
 
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
-
-    const handleDiseaseChange = (disease) => {
-      setFormData(prev => ({
-        ...prev,
-        diseases: prev.diseases.includes(disease)
-          ? prev.diseases.filter(d => d !== disease)
-          : [...prev.diseases, disease]
-      }));
-    };
-
-    const handleSubmit = () => {
-      if (isRegistering) {
-        // 회원가입 처리
-        const newUser = {
-          ...formData,
-          bmi: calculateBMI(formData.weight, formData.height)
-        };
-        setUser(newUser);
-        setIsLoggedIn(true);
-        setCurrentPage('main');
-      } else {
-        // 로그인 처리 (데모용)
-        // 실제 앱에서는 이메일/비밀번호 확인 로직이 필요합니다.
-        // 현재는 단순히 이메일로 로그인하고 메인 페이지로 이동
-        setUser({ name: formData.email.split('@')[0], email: formData.email }); // 사용자 이름 간단히 설정
-        setIsLoggedIn(true);
-        setCurrentPage('main');
-      }
-    };
-
-    const calculateBMI = (weight, height) => {
-      if (!weight || !height || height === 0) return '알수 없음'; // 유효하지 않은 값 처리
-      const heightInM = height / 100;
-      return (weight / (heightInM * heightInM)).toFixed(1);
-    };
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Heart className="w-8 h-8 text-red-500 mr-2" />
-              <h1 className="text-2xl font-bold text-gray-800">헬스케어 매니저</h1>
-            </div>
-            <p className="text-gray-600">
-              {isRegistering ? '건강한 삶의 시작' : '건강 관리의 파트너'}
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <input
-                type="email"
-                name="email"
-                placeholder="이메일"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <input
-                type="password"
-                name="password"
-                placeholder="비밀번호"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {isRegistering && (
-              <>
-                <div>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="이름"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    name="weight"
-                    placeholder="체중(kg)"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <input
-                    type="number"
-                    name="height"
-                    placeholder="신장(cm)"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    name="age"
-                    placeholder="나이"
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">성별</option>
-                    <option value="male">남성</option>
-                    <option value="female">여성</option>
-                  </select>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">기존 질환 (해당사항 선택)</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['당뇨병', '고혈압', '심장병', '관절염', '기타'].map(disease => (
-                      <label key={disease} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={formData.diseases.includes(disease)}
-                          onChange={() => handleDiseaseChange(disease)}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm">{disease}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <select
-                    name="activityLevel"
-                    value={formData.activityLevel}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">활동 수준</option>
-                    <option value="low">낮음 (주로 앉아서 생활)</option>
-                    <option value="moderate">보통 (가벼운 운동)</option>
-                    <option value="high">높음 (규칙적인 운동)</option>
-                  </select>
-                </div>
-              </>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200 font-semibold"
-            >
-              {isRegistering ? '회원가입' : '로그인'}
-            </button>
-          </div>
-
-          <div className="text-center mt-6">
-            <button
-              onClick={() => setIsRegistering(!isRegistering)}
-              className="text-blue-500 hover:text-blue-700 text-sm"
-            >
-              {isRegistering ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentPage('login');
+    setUser(null);
   };
 
   // 메인 페이지
@@ -407,7 +209,7 @@ const HealthManagementApp = () => {
 
                 <div
                   className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setCurrentPage('bmi-calculator')} // BMI 계산기 페이지로 이동
+                  onClick={() => setCurrentPage('bmi-calculator')}
                 >
                   <div className="flex items-center mb-4">
                     <Calculator className="w-8 h-8 text-purple-500 mr-3" />
@@ -470,7 +272,6 @@ const HealthManagementApp = () => {
       }
     };
 
-
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -483,7 +284,6 @@ const HealthManagementApp = () => {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              {/* 왼쪽 상단 "헬스케어 매니저" 클릭 시 대시보드로 이동 */}
               <div
                 className="flex items-center ml-2 lg:ml-0 min-w-0 cursor-pointer"
                 onClick={() => setCurrentPage('main')}
@@ -502,11 +302,7 @@ const HealthManagementApp = () => {
                 {user?.name || '사용자'}님
               </span>
               <button
-                onClick={() => {
-                  setIsLoggedIn(false);
-                  setCurrentPage('login');
-                  setUser(null);
-                }}
+                onClick={handleLogout}
                 className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 flex-shrink-0"
                 title="로그아웃"
               >
@@ -568,7 +364,11 @@ const HealthManagementApp = () => {
 
   return (
     <div>
-      {!isLoggedIn ? <LoginPage /> : <MainPage />}
+      {!isLoggedIn ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : (
+        <MainPage />
+      )}
     </div>
   );
 };
